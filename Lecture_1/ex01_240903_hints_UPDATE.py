@@ -10,7 +10,7 @@ from sklearn.preprocessing import PolynomialFeatures
 work_dir = os.getcwd() # CHANGE THIS WITH YOUR CURRENT DIR!
 save_path = work_dir + r'\ex01_data.npy'
 
-data = ... # TODO: load data (check https://numpy.org/doc/stable/reference/generated/numpy.load.html)
+data = np.load("ex01_data.npy") # TODO: load data (check https://numpy.org/doc/stable/reference/generated/numpy.load.html)
     
 x1 = data[:,0]
 x2 = data[:,1]
@@ -22,9 +22,10 @@ np.random.seed(100)
 
 sample_points = 10
 sample_idx = np.sort(np.random.choice(len(x1), sample_points))
+sample_idx = np.sort(np.random.choice(len(x2), sample_points))
 
 x1_sub = np.take(x1, sample_idx)
-x2_sub = ... # TODO: sample x2
+x2_sub = np.take(x2, sample_idx)# TODO: sample x2
 
 plt.figure()
 plt.scatter(x1_sub, x2_sub, label='Sampled data')
@@ -45,21 +46,21 @@ def polyfit(x1, x2, deg, regularization=0, y = None, show_sums_of_squares=False)
     ridge_reg = Ridge(alpha=regularization)
     
     # Fit the model
-    ... # TODO: check https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Ridge.html for further information
+    ridge_reg.fit(x1_poly, x2) # TODO: check https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Ridge.html for further information
     
     # Generate x values for the regression line/curve
-    x_plot = ... # TODO: Generate 1000 samples between the minimum and maximum values of x1
+    x_plot = np.linspace(x1.min(), x1.max(), 1000) # TODO: Generate 1000 samples between the minimum and maximum values of x1
     x1_poly_plot = poly.transform(x_plot[:, np.newaxis])
     
     # Predict y_hat values
-    y_hat_plot = ... # TODO: Compute predictions using the 1000 samples you generated
-    y_hat = ... # TODO: Use the ridge regression to predict x2 given x1
+    y_hat_plot = ridge_reg.predict(x1_poly_plot) # TODO: Compute predictions using the 1000 samples you generated
+    y_hat = ridge_reg.predict(x1_poly) # TODO: Use the ridge regression to predict x2 given x1
     
     # Extract coefficients
     coefs = ridge_reg.intercept_, *ridge_reg.coef_[1:]
     
     # Here we calculate mean-square-error (MSE)
-    MSE = ... # TODO: implement MSE equation
+    MSE = np.mean((x2 - y_hat) ** 2) # TODO: implement MSE equation
 
     # At last we plot the observation and the regression line/curve
     plt.figure()
@@ -94,20 +95,21 @@ print('MSE = ', round(mse,3))
 # %%
 # 2) Explore L2 regularization:
 deg = 9
-reg = 1e-1
+reg = 1e-2
 
-coefs, mse = ... # TODO
+coefs, mse = polyfit(x1_sub, x2_sub, deg=deg, regularization=reg, y=y) # TODO
 print('MSE = ', round(mse,3))
 
 # %%
 # 3) Investigate the effect of sample size.
 np.random.seed(100)
 
-sample_points = 100
-sample_idx = ... # TODO
+sample_points = 10
+sample_idx = np.sort(np.random.choice(len(x1), sample_points, replace=False))# TODO
 
-x1_sub_100 = ... # TODO
-x2_sub_100 = ... # TODO
+
+x1_sub_100 = np.take(x1, sample_idx)# TODO
+x2_sub_100 = np.take(x2, sample_idx)# TODO
 
 
 deg = 9
