@@ -1,3 +1,12 @@
+# ###################################
+# Group ID : <165>
+# Members : <Emil Frydenholm, Mads Wenneberg Mikkelsen>
+# Date : <17-09-2035>
+# Lecture: <2> <Bayesian decision theory, Parametric and nonparametric methods>
+# Dependencies: numpy
+# Python version:3.12
+# Functionality:The code implements a Gaussian classifier that uses training data to estimate class distributions, applies different priors to classify test samples, evaluates accuracy, and visualizes the decision boundaries with confidence ellipses.
+# ###################################
 import numpy as np
 from numpy.linalg import det, inv
 import matplotlib.pyplot as plt
@@ -80,12 +89,12 @@ ax.scatter(train_x[:, 0], train_x[:, 1], c="blue", label="Class X (label=1)", al
 ax.scatter(train_y[:, 0], train_y[:, 1], c="red", label="Class Y (label=2)", alpha=0.5)
 
 # ellipses (95% confidence ~ 2 std)
-confidence_ellipse(train_x_mean, train_x_cov, ax, n_std=2, edgecolor="blue", linewidth=2)
-confidence_ellipse(train_y_mean, train_y_cov, ax, n_std=2, edgecolor="red", linewidth=2)
+confidence_ellipse(train_x_mean, train_x_cov, ax, n_std=2, edgecolor="yellow", linewidth=2)
+confidence_ellipse(train_y_mean, train_y_cov, ax, n_std=2, edgecolor="green", linewidth=2)
 
 # means
-ax.scatter(*train_x_mean, c="blue", marker="x", s=100, linewidth=3)
-ax.scatter(*train_y_mean, c="red", marker="x", s=100, linewidth=3)
+ax.scatter(*train_x_mean, c="lightgreen", marker="x", s=100, linewidth=3)
+ax.scatter(*train_y_mean, c="white", marker="x", s=100, linewidth=3)
 
 ax.legend()
 ax.set_title("Training Data with Gaussian Confidence Ellipses")
@@ -157,3 +166,4 @@ print(f"(c) Accuracy using non-uniform prior: {accuracy_xy_126_non_uniform*100:.
 # ---------- Improvement ----------
 improvement = (accuracy_xy_126_non_uniform / accuracy_xy_126_uniform) - 1
 print(f"Absolute improvement in accuracy: {improvement*100:.2f}%")
+
