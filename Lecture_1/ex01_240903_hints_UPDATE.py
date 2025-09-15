@@ -87,7 +87,7 @@ def polyfit(x1, x2, deg, regularization=0, y = None, show_sums_of_squares=False)
 
 # %%
 # 1) Experiment with different polynomial degrees:
-deg = 5
+deg = 9
 
 coefs, mse = polyfit(x1_sub, x2_sub, deg=deg, y=y, show_sums_of_squares=True)
 print('MSE = ', round(mse,3))
