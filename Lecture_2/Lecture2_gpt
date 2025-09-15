@@ -1,0 +1,159 @@
+import numpy as np
+from numpy.linalg import det, inv
+import matplotlib.pyplot as plt
+from matplotlib.patches import Ellipse
+
+# Train data
+train_x = np.loadtxt("dataset1_G_noisy_ASCII/trn_x.txt")
+train_x_label = np.loadtxt("dataset1_G_noisy_ASCII/trn_x_class.txt")
+
+train_y = np.loadtxt("dataset1_G_noisy_ASCII/trn_y.txt")
+train_y_label = np.loadtxt("dataset1_G_noisy_ASCII/trn_y_class.txt")
+
+train_mean = np.mean(train_x, axis= 0)
+train_var = np.var(train_x, axis= 0)
+
+# Test data
+test_x = np.loadtxt("dataset1_G_noisy_ASCII/tst_x.txt")
+test_x_label = np.loadtxt("dataset1_G_noisy_ASCII/tst_x_class.txt")
+
+test_y = np.loadtxt("dataset1_G_noisy_ASCII/tst_y.txt")
+test_y_label = np.loadtxt("dataset1_G_noisy_ASCII/tst_y_class.txt")
+
+test_y_126 = np.loadtxt("dataset1_G_noisy_ASCII/tst_y_126.txt")
+test_y_126_label = np.loadtxt("dataset1_G_noisy_ASCII/tst_y_126_class.txt")
+
+test_xy = np.loadtxt("dataset1_G_noisy_ASCII/tst_xy.txt")
+test_xy_label = np.loadtxt("dataset1_G_noisy_ASCII/tst_xy_class.txt")
+
+test_xy_126 = np.loadtxt("dataset1_G_noisy_ASCII/tst_xy_126.txt")
+test_xy_126_label = np.loadtxt("dataset1_G_noisy_ASCII/tst_xy_126_class.txt")
+# ---------- (a) Compute statistics ----------
+def confidence_ellipse(mean, cov, ax, n_std=2.0, facecolor='none', **kwargs):
+    """
+    Create a plot of the covariance confidence ellipse of *mean* and *cov*.
+    Parameters
+    ----------
+    mean : array-like, shape (2,)
+    cov : array-like, shape (2, 2)
+    ax : matplotlib.axes.Axes
+    n_std : float
+        The number of standard deviations to determine the ellipse's radius.
+    """
+    pearson = cov[0, 1] / np.sqrt(cov[0, 0] * cov[1, 1])
+    ell_radius_x = np.sqrt(1 + pearson)
+    ell_radius_y = np.sqrt(1 - pearson)
+
+    ellipse = Ellipse((0, 0),
+                      width=ell_radius_x * 2,
+                      height=ell_radius_y * 2,
+                      facecolor=facecolor,
+                      **kwargs)
+
+    scale_x = np.sqrt(cov[0, 0]) * n_std
+    mean_x = mean[0]
+
+    scale_y = np.sqrt(cov[1, 1]) * n_std
+    mean_y = mean[1]
+
+    transf = (plt.matplotlib.transforms.Affine2D()
+              .rotate_deg(45)
+              .scale(scale_x, scale_y)
+              .translate(mean_x, mean_y))
+
+    ellipse.set_transform(transf + ax.transData)
+    return ax.add_patch(ellipse)
+
+
+# ---------- Compute statistics ----------
+train_x_mean = np.mean(train_x, axis=0)
+train_x_cov = np.cov(train_x.T)
+
+train_y_mean = np.mean(train_y, axis=0)
+train_y_cov = np.cov(train_y.T)
+
+# ---------- Plot ----------
+fig, ax = plt.subplots(figsize=(8, 6))
+
+# scatter plot of training data
+ax.scatter(train_x[:, 0], train_x[:, 1], c="blue", label="Class X (label=1)", alpha=0.5)
+ax.scatter(train_y[:, 0], train_y[:, 1], c="red", label="Class Y (label=2)", alpha=0.5)
+
+# ellipses (95% confidence ~ 2 std)
+confidence_ellipse(train_x_mean, train_x_cov, ax, n_std=2, edgecolor="blue", linewidth=2)
+confidence_ellipse(train_y_mean, train_y_cov, ax, n_std=2, edgecolor="red", linewidth=2)
+
+# means
+ax.scatter(*train_x_mean, c="blue", marker="x", s=100, linewidth=3)
+ax.scatter(*train_y_mean, c="red", marker="x", s=100, linewidth=3)
+
+ax.legend()
+ax.set_title("Training Data with Gaussian Confidence Ellipses")
+ax.set_xlabel("Feature 1")
+ax.set_ylabel("Feature 2")
+plt.show()
+
+# priors (relative frequency of samples)
+prior_x = len(train_x) / (len(train_x) + len(train_y))
+prior_y = len(train_y) / (len(train_x) + len(train_y))
+
+# ---------- Define likelihood function ----------
+def likelihood(data, mean, cov):
+    d = data.shape[1]
+    cov_inv = inv(cov)
+    cov_det = det(cov)
+    norm_const = 1.0 / (np.power((2*np.pi), d/2) * np.sqrt(cov_det))
+    diff = data - mean
+    exp_term = np.exp(-0.5 * np.sum(diff @ cov_inv * diff, axis=1))
+    return norm_const * exp_term
+
+# ---------- Compute likelihoods for tst_xy ----------
+likelihood_x = likelihood(test_xy, train_x_mean, train_x_cov)
+likelihood_y = likelihood(test_xy, train_y_mean, train_y_cov)
+
+# ---------- Compute posteriors ----------
+posterior_x = likelihood_x * prior_x
+posterior_y = likelihood_y * prior_y
+
+# ---------- Classification ----------
+classification = np.where(posterior_x > posterior_y, 1, 2)
+
+# ---------- Accuracy ----------
+accuracy_xy = np.mean(classification == test_xy_label)
+print(f"(a) Accuracy on tst_xy: {accuracy_xy*100:.2f}%")
+
+# ===========================================================
+# (b) Uniform prior
+prior_x_uniform = 0.5
+prior_y_uniform = 0.5
+
+likelihood_x_uniform = likelihood(test_xy_126, train_x_mean, train_x_cov)
+likelihood_y_uniform = likelihood(test_xy_126, train_y_mean, train_y_cov)
+
+posterior_x_uniform = likelihood_x_uniform * prior_x_uniform
+posterior_y_uniform = likelihood_y_uniform * prior_y_uniform
+
+classification_uniform = np.where(posterior_x_uniform > posterior_y_uniform, 1, 2)
+
+accuracy_xy_126_uniform = np.mean(classification_uniform == test_xy_126_label)
+print(f"(b) Accuracy using uniform prior: {accuracy_xy_126_uniform*100:.2f}%")
+
+# ===========================================================
+# (c) Non-uniform prior (0.9 for class x, 0.1 for class y)
+prior_x_non_uniform = 0.9
+prior_y_non_uniform = 0.1
+
+likelihood_x_non_uniform = likelihood(test_xy_126, train_x_mean, train_x_cov)
+likelihood_y_non_uniform = likelihood(test_xy_126, train_y_mean, train_y_cov)
+
+posterior_x_non_uniform = likelihood_x_non_uniform * prior_x_non_uniform
+posterior_y_non_uniform = likelihood_y_non_uniform * prior_y_non_uniform
+
+classification_non_uniform = np.where(posterior_x_non_uniform > posterior_y_non_uniform, 1, 2)
+
+accuracy_xy_126_non_uniform = np.mean(classification_non_uniform == test_xy_126_label)
+print(f"(c) Accuracy using non-uniform prior: {accuracy_xy_126_non_uniform*100:.2f}%")
+
+# ---------- Improvement ----------
+improvement = (accuracy_xy_126_non_uniform / accuracy_xy_126_uniform) - 1
+print(f"Absolute improvement in accuracy: {improvement*100:.2f}%")

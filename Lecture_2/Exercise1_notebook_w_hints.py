@@ -44,7 +44,7 @@ test_xy_126_label = np.loadtxt("dataset1_G_noisy_ASCII/tst_xy_126_class.txt")
 
 # Let's visualize the training data by plotting a 2D scatter plot and corresponding Gaussians for class x and class y
 
-# In[ ]:
+# In[1]:
 
 
 # Hint: look at: https://matplotlib.org/stable/gallery/statistics/confidence_ellipse.html 
