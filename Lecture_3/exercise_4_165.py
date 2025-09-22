@@ -1,3 +1,12 @@
+# ###################################
+# Group ID : <165>
+# Members : <Emil Frydenholm, Mads Wenneberg Mikkelsen>
+# Date : <23-09-2035>
+# Lecture: <4> <Dimensionality reduction>
+# Dependencies: numpy, SciKit-learn
+# Python version:3.11.9
+# Functionality:This code loads selected MNIST digit data (5, 6, 8), reduces its dimensionality to 2D using LDA and PCA, fits Gaussian classifiers, and visualizes both classification accuracy and decision boundaries.
+# ###################################
 # %%
 import numpy as np
 from scipy.stats import multivariate_normal as norm
